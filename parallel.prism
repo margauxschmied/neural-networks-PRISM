@@ -1,0 +1,110 @@
+//seuil du spike du neurone n
+const int T = 10;
+//impulsions entrantes dans n venant des neurones k et l
+const int kx = 2;
+const int lx = 2;
+
+
+
+//impulsion émise par n pour n2
+const int x2 = 9;
+
+//impulsion émise par n pour n3
+const int x3 = 12;
+
+
+
+//coefficient de fuite de n
+const double r = 0.9; //TO DO: essayer de le changer 
+//mise à jour du potentiel
+formula potentiel1 = floor(r*potentiela+k*kx+l*lx);	//quelque soit la valeur du potentiel, à chaque temps on divise sa valeur precedente par r 
+						   	//et on lui rajoute les valeurs des signaux des autres neurones
+formula potentiel2 = floor(r*potentiela2+x2*z1);
+
+formula potentiel3 = floor(r*potentiela2+x3*z1);
+
+
+module initialisation
+	
+	k : [0..1] init 1;//neurone precedent k
+	l : [0..1] init 0;//neurone precedent l
+
+	[to] true -> 0.25:(l'=1) & (k'=1) + 0.25:(l'=1) & (k'=0) + 0.25:(l'=0) & (k'=1) + 0.25:(l'=0) & (k'=0);//probabilité d'avoir chaque combinaison équivalente
+	//[to] true -> 0.5:(k'=1) + 0.5:(k'=0);//50% d'activation de k
+	//[to] k=1 -> (l'=1) & (k'=0);//activation de k puis l
+	//[to] l=1 -> (k'=1) & (l'=0);//activation de l puis k
+endmodule
+	
+module neurone
+
+	n1 : [0..1] init 0;// 0 = inactif et 1 = spike
+	potentiela : [-500..1000]init 0;
+
+	//chaque fois que n=0, on met à jour le potentiel
+	[to] n1=0 & potentiela<=0.2*T-> 1:(n1'=0) &( potentiela'=potentiel1);//potentiel inferieur a 0.2* le seuil => pas de spike
+	[to] n1=0 & potentiela<=0.3*T & potentiela>0.2*T-> 0.20:(n1'=1) + 0.80:(n1'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.2* et 0.3* le seuil => probabilite de 0.2 d'emettre un spike
+	[to] n1=0 & potentiela<=0.4*T & potentiela>0.3*T-> 0.30:(n1'=1) + 0.70:(n1'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.3* et 0.4* le seuil => probabilite de 0.3 d'emettre un spike
+	[to] n1=0 & potentiela<=1.1*T & potentiela>0.4*T-> 0.50:(n1'=1) + 0.50:(n1'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.4* et 1.1* le seuil => probabilite de 0.5 d'emettre un spike
+	[to] n1=0 & potentiela<=1.5*T & potentiela>1.1*T-> 0.70:(n1'=1) + 0.30:(n1'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 1.1* et 1.5* le seuil => probabilite de 0.7 d'emettre un spike
+	[to] n1=0 & potentiela<=2.0*T & potentiela>1.5*T-> 0.90:(n1'=1) + 0.10:(n1'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 1.5* et 2* le seuil => probabilite de 0.9 d'emettre un spike
+	[to] n1=0 & potentiela>2.0*T-> 1:(n1'=1);//potentiel superieur a 2* le seuil => emission d'un spike
+	
+	[reset1] n1=1 -> 1:(n1'=0) & (potentiela'=0); //reinitialisation de l'etat et du potentiel apres spike
+endmodule
+
+
+module neurone2
+
+    n2 : [0..1] init 0;// 0 = inactif et 1 = spike
+    potentiela2 : [-500..1000]init 0;
+
+    //chaque fois que n=0, on met à jour le potentiel
+    [to2] n2=0 & potentiela2<=0.2*T-> 1:(n2'=0) &( potentiela2'=potentiel2);//potentiel inferieur a 0.2* le seuil => pas de spike
+    [to2] n2=0 & potentiela2<=0.3*T & potentiela2>0.2*T-> 0.20:(n2'=1) + 0.80:(n2'=0) &( potentiela2'=potentiel2);//quand la valeur du potentiel est entre 0.2* et 0.3* le seuil => probabilite de 0.2 d'emettre un spike
+    [to2] n2=0 & potentiela2<=0.4*T & potentiela2>0.3*T-> 0.30:(n2'=1) + 0.70:(n2'=0) &( potentiela2'=potentiel2);//quand la valeur du potentiel est entre 0.3* et 0.4* le seuil => probabilite de 0.3 d'emettre un spike
+    [to2] n2=0 & potentiela2<=1.1*T & potentiela2>0.4*T-> 0.50:(n2'=1) + 0.50:(n2'=0) &( potentiela2'=potentiel2);//quand la valeur du potentiel est entre 0.4* et 1.1* le seuil => probabilite de 0.5 d'emettre un spike
+    [to2] n2=0 & potentiela2<=1.5*T & potentiela2>1.1*T-> 0.70:(n2'=1) + 0.30:(n2'=0) &( potentiela2'=potentiel2);//quand la valeur du potentiel est entre 1.1* et 1.5* le seuil => probabilite de 0.7 d'emettre un spike
+    [to2] n2=0 & potentiela2<=2.0*T & potentiela2>1.5*T-> 0.90:(n2'=1) + 0.10:(n2'=0) &( potentiela2'=potentiel2);//quand la valeur du potentiel est entre 1.5* et 2* le seuil => probabilite de 0.9 d'emettre un spike
+    [to2] n2=0 & potentiela2>2.0*T-> 1:(n2'=1);//potentiel superieur a 2* le seuil => emission d'un spike
+    
+    [reset2] n2=1 -> 1:(n2'=0) & (potentiela2'=0); //reinitialisation de l'etat et du potentiel apres spike
+endmodule
+
+module neurone3
+
+    n3 : [0..1] init 0;// 0 = inactif et 1 = spike
+    potentiela3 : [-500..1000]init 0;
+
+    //chaque fois que n=0, on met à jour le potentiel
+    [to3] n3=0 & potentiela3<=0.2*T-> 1:(n3'=0) &( potentiela3'=potentiel3);//potentiel inferieur a 0.2* le seuil => pas de spike
+    [to3] n3=0 & potentiela3<=0.3*T & potentiela3>0.2*T-> 0.20:(n3'=1) + 0.80:(n3'=0) &( potentiela3'=potentiel3);//quand la valeur du potentiel est entre 0.2* et 0.3* le seuil => probabilite de 0.2 d'emettre un spike
+    [to3] n3=0 & potentiela3<=0.4*T & potentiela3>0.3*T-> 0.30:(n3'=1) + 0.70:(n3'=0) &( potentiela3'=potentiel3);//quand la valeur du potentiel est entre 0.3* et 0.4* le seuil => probabilite de 0.3 d'emettre un spike
+    [to3] n3=0 & potentiela3<=1.1*T & potentiela3>0.4*T-> 0.50:(n3'=1) + 0.50:(n3'=0) &( potentiela3'=potentiel3);//quand la valeur du potentiel est entre 0.4* et 1.1* le seuil => probabilite de 0.5 d'emettre un spike
+    [to3] n3=0 & potentiela3<=1.5*T & potentiela3>1.1*T-> 0.70:(n3'=1) + 0.30:(n3'=0) &( potentiela3'=potentiel3);//quand la valeur du potentiel est entre 1.1* et 1.5* le seuil => probabilite de 0.7 d'emettre un spike
+    [to3] n3=0 & potentiela3<=2.0*T & potentiela3>1.5*T-> 0.90:(n3'=1) + 0.10:(n3'=0) &( potentiela3'=potentiel3);//quand la valeur du potentiel est entre 1.5* et 2* le seuil => probabilite de 0.9 d'emettre un spike
+    [to3] n3=0 & potentiela3>2.0*T-> 1:(n3'=1);//potentiel superieur a 2* le seuil => emission d'un spike
+    
+    [reset3] n3=1 -> 1:(n3'=0) & (potentiela3'=0); //reinitialisation de l'etat et du potentiel apres spike
+endmodule
+
+
+module transfert12
+    z1:[0..1] init 0;
+
+    [reset1] true -> 1: (z1'=1);
+    [to] true -> 1: (z1'=0);
+endmodule
+
+
+//compte le nombre de spike
+rewards "nbN1"
+	n1=1 : 1;//pour chaque activation, la reward augmente de 1 
+endrewards
+
+rewards "nbN2"
+	n2=1 : 1;//pour chaque activation, la reward augmente de 1 
+endrewards
+
+rewards "nbN3"
+	n3=1 : 1;//pour chaque activation, la reward augmente de 1 
+endrewards

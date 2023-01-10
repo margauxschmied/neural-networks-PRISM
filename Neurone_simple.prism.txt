@@ -1,0 +1,49 @@
+dtmc
+
+//seuil du spike du neurone n
+const int T = 10;
+//impulsions entrantes dans n venant des neurones k et l
+const int kx = 2;
+const int lx = 2;
+//impulsion émise par n
+const int x = 15;
+//coefficient de fuite de n
+const double r = 0.9; //TO DO: essayer de le changer 
+//mise à jour du potentiel
+formula potentiel1 = floor(r*potentiela+k*kx+l*lx);//quelque soit la valeur du potentiel, à chaque temps on divise sa valeur precedente par r 
+						   //et on lui rajoute les valeurs des signaux des autres neurones
+
+
+module initialisation
+	
+	k : [0..1] init 1;//neurone precedent k
+	l : [0..1] init 0;//neurone precedent l
+
+	[to] true -> 0.25:(l'=1) & (k'=1) + 0.25:(l'=1) & (k'=0) + 0.25:(l'=0) & (k'=1) + 0.25:(l'=0) & (k'=0);//probabilité d'avoir chaque combinaison équivalente
+	//[to] true -> 0.5:(k'=1) + 0.5:(k'=0);//50% d'activation de k
+	//[to] k=1 -> (l'=1) & (k'=0);//activation de k puis l
+	//[to] l=1 -> (k'=1) & (l'=0);//activation de l puis k
+endmodule
+	
+module neurone
+
+	n : [0..1] init 0;// 0 = inactif et 1 = spike
+	potentiela : [-500..1000]init 0;
+
+	//chaque fois que n=0, on met à jour le potentiel
+	[to] n=0 & potentiela<=0.2*T-> 1:(n'=0) &( potentiela'=potentiel1);//potentiel inferieur a 0.2* le seuil => pas de spike
+	[to] n=0 & potentiela<=0.3*T & potentiela>0.2*T-> 0.20:(n'=1) + 0.80:(n'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.2* et 0.3* le seuil => probabilite de 0.2 d'emettre un spike
+	[to] n=0 & potentiela<=0.4*T & potentiela>0.3*T-> 0.30:(n'=1) + 0.70:(n'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.3* et 0.4* le seuil => probabilite de 0.3 d'emettre un spike
+	[to] n=0 & potentiela<=1.1*T & potentiela>0.4*T-> 0.50:(n'=1) + 0.50:(n'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 0.4* et 1.1* le seuil => probabilite de 0.5 d'emettre un spike
+	[to] n=0 & potentiela<=1.5*T & potentiela>1.1*T-> 0.70:(n'=1) + 0.30:(n'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 1.1* et 1.5* le seuil => probabilite de 0.7 d'emettre un spike
+	[to] n=0 & potentiela<=2.0*T & potentiela>1.5*T-> 0.90:(n'=1) + 0.10:(n'=0) &( potentiela'=potentiel1);//quand la valeur du potentiel est entre 1.5* et 2* le seuil => probabilite de 0.9 d'emettre un spike
+	[to] n=0 & potentiela>2.0*T-> 1:(n'=1);//potentiel superieur a 2* le seuil => emission d'un spike
+	
+	[reset] n=1 -> 1:(n'=0) & (potentiela'=0); //reinitialisation de l'etat et du potentiel apres spike
+endmodule
+
+
+//compte le nombre de spike
+rewards "n1"
+	n=1 : 1;//pour chaque activation, la reward augmente de 1 
+endrewards
